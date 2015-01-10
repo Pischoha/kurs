@@ -13,58 +13,19 @@
 #include <tchar.h>
 #include <cstring>
 #include <cstdlib>
-
-std::vector<std::string> csv_read_row(std::istream &in, char delimiter);
-std::string Trimmer(std::string s);
-std::string dtos(double dbl);
+#include <msclr\marshal_cppstd.h>
 
 struct WorkerInfo
 {
 	std::string LastName;
 	double Salary;
 };
-std::string dtos(double dbl){
-	char buf[BUFSIZ];
-	sprintf_s(buf, "%lf", dbl);
-	return buf;
-}
 
-std::string Trimmer(std::string s)
-{
-	while (s[0] == ' ')
-	{
-		s = s.substr(1);
-	}
-	while (s[s.length() - 1] == ' ')
-	{
-		s = s.substr(0, s.length() - 1);
-	}
-	return s;
-}
-std::vector<std::string> csv_read_row(std::istream &in, char delimiter)
-{
-	std::stringstream ss;
-	bool inquotes = false;
-	std::vector<std::string> row;//relying on RVO
-	while (in.good())
-	{
-		char c = in.get();
-		if (!inquotes && c == delimiter) //end of field
-		{
-			row.push_back(ss.str());
-			ss.str("");
-		}
-		else if (!inquotes && c == '\\')
-		{
-			row.push_back(ss.str());
-			return row;
-		}
-		else
-		{
-			ss << c;
-		}
-	}
-}
+std::vector<std::string> csv_read_row(std::istream &in, char delimiter);
+std::string Trimmer(std::string s);
+std::string dtos(double dbl);
+std::vector<WorkerInfo> ReadFile(std::string fileName);
+
 std::vector<WorkerInfo> workers;
 
 std::string lastName;
@@ -111,6 +72,8 @@ namespace DataGreed {
 	private: System::Windows::Forms::DataGridView^  dataGridView1;
 	private: System::Windows::Forms::Button^  button1;
 	private: System::Windows::Forms::Button^  button2;
+	private: System::Windows::Forms::OpenFileDialog^  openFileDialog1;
+	private: System::Windows::Forms::Button^  button3;
 	protected:
 
 	private:
@@ -129,22 +92,26 @@ namespace DataGreed {
 			this->dataGridView1 = (gcnew System::Windows::Forms::DataGridView());
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->button2 = (gcnew System::Windows::Forms::Button());
+			this->openFileDialog1 = (gcnew System::Windows::Forms::OpenFileDialog());
+			this->button3 = (gcnew System::Windows::Forms::Button());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->dataGridView1))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// dataGridView1
 			// 
+			this->dataGridView1->AllowUserToAddRows = false;
+			this->dataGridView1->AllowUserToResizeRows = false;
 			this->dataGridView1->ColumnHeadersHeightSizeMode = System::Windows::Forms::DataGridViewColumnHeadersHeightSizeMode::AutoSize;
 			this->dataGridView1->Location = System::Drawing::Point(12, 12);
 			this->dataGridView1->Name = L"dataGridView1";
-			this->dataGridView1->Size = System::Drawing::Size(591, 422);
+			this->dataGridView1->Size = System::Drawing::Size(591, 368);
 			this->dataGridView1->TabIndex = 0;
 			// 
 			// button1
 			// 
-			this->button1->Location = System::Drawing::Point(652, 12);
+			this->button1->Location = System::Drawing::Point(640, 31);
 			this->button1->Name = L"button1";
-			this->button1->Size = System::Drawing::Size(86, 32);
+			this->button1->Size = System::Drawing::Size(98, 42);
 			this->button1->TabIndex = 1;
 			this->button1->Text = L"button1";
 			this->button1->UseVisualStyleBackColor = true;
@@ -152,19 +119,34 @@ namespace DataGreed {
 			// 
 			// button2
 			// 
-			this->button2->Location = System::Drawing::Point(652, 71);
+			this->button2->Location = System::Drawing::Point(640, 79);
 			this->button2->Name = L"button2";
-			this->button2->Size = System::Drawing::Size(86, 32);
+			this->button2->Size = System::Drawing::Size(98, 42);
 			this->button2->TabIndex = 2;
 			this->button2->Text = L"button2";
 			this->button2->UseVisualStyleBackColor = true;
 			this->button2->Click += gcnew System::EventHandler(this, &MyForm::button2_Click);
+			// 
+			// openFileDialog1
+			// 
+			this->openFileDialog1->FileName = L"openFileDialog1";
+			// 
+			// button3
+			// 
+			this->button3->Location = System::Drawing::Point(640, 127);
+			this->button3->Name = L"button3";
+			this->button3->Size = System::Drawing::Size(96, 42);
+			this->button3->TabIndex = 3;
+			this->button3->Text = L"Delete select row";
+			this->button3->UseVisualStyleBackColor = true;
+			this->button3->Click += gcnew System::EventHandler(this, &MyForm::button3_Click);
 			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(783, 446);
+			this->Controls->Add(this->button3);
 			this->Controls->Add(this->button2);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->dataGridView1);
@@ -175,37 +157,23 @@ namespace DataGreed {
 
 		}
 #pragma endregion
-	private: 
-		
-		
-		System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) {
-			std::ifstream in("input.csv");
-			while (in.good())
-			{
-				//read the file into vector of strings
-				std::vector<std::string> row = csv_read_row(in, ';');
-				for (int i = 0, leng = row.size(); i < leng; i++)
-				{
-					if (i % 2 == 0)
-					{
-						lastName = Trimmer(row[i]);
-						
-					}
-					else
-					{
-						strSalary = Trimmer(row[i]);
-						salary = stod(strSalary);
-						salary = floor((salary * 10) + 0.5);
-						salary /= 10;
-						worker = { lastName, salary };
-						workers.push_back(worker);
-						
-					}
-				}			
-			}
-			in.close();
+	private:
 
-			/*Добавление Колонны*/
+
+		System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) {
+
+			//if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
+			//{
+			//	workers = msclr::interop::marshal_as<std::string>;//ReadFile(openFileDialog1->FileName);
+			//	if (workers.size() == 0)
+			//		return;
+			//}
+			//else
+			//{
+			//	return;
+			//}
+
+
 			DataTable^ MyTable = gcnew DataTable();
 			MyTable->Columns->Add(gcnew DataColumn("Last name", Type::GetType("System.String")));
 			MyTable->Columns->Add(gcnew DataColumn("Salary", Type::GetType("System.Double")));
@@ -216,7 +184,7 @@ namespace DataGreed {
 			MyTable->Columns->Add(gcnew DataColumn("Total to issue", Type::GetType("System.Double")));
 
 			/*Связать таблицу с dataGridView*/
-			dataGridView1->DataSource = MyTable; //связь
+			dataGridView1->DataSource = MyTable;
 			dataGridView1->Columns[0]->AutoSizeMode = DataGridViewAutoSizeColumnMode::Fill;
 			dataGridView1->Columns[1]->AutoSizeMode = DataGridViewAutoSizeColumnMode::Fill;
 			dataGridView1->Columns[2]->AutoSizeMode = DataGridViewAutoSizeColumnMode::Fill;
@@ -236,29 +204,35 @@ namespace DataGreed {
 				MyTable->Rows->Add(lastName, salary, PP, PF, FZ, U, ZP);
 
 			}
-				 
 
-				
 
-				 /*Сохраняем в xml*/
-				 /*DataSet^ DS = gcnew DataSet();
-				 DS->Tables->Add(MyTable);
-				 DS->WriteXml("C:\\patch_list.xml");
-*/
-				 /*Загружаем из файла*/
-				 /*DataSet^ DS = gcnew DataSet();
-				 try
-				 {
-					 DS->ReadXml(C:\\patch_list.xml);
-					 dataGridView1->DataSource = DS->Tables[0];
-					 dataGridView1->Refresh();
-				 }
-				 catch (System::Exception^ e)
-				 {
-					 MessageBox::Show("Ошибка чтение xml");
-				 }*/
-	}
+
+
+			/*Сохраняем в xml*/
+			/*DataSet^ DS = gcnew DataSet();
+			DS->Tables->Add(MyTable);
+			DS->WriteXml("C:\\patch_list.xml");
+			*/
+			/*Загружаем из файла*/
+			/*DataSet^ DS = gcnew DataSet();
+			try
+			{
+			DS->ReadXml(C:\\patch_list.xml);
+			dataGridView1->DataSource = DS->Tables[0];
+			dataGridView1->Refresh();
+			}
+			catch (System::Exception^ e)
+			{
+			MessageBox::Show("Ошибка чтение xml");
+			}*/
+		}
 	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) {
 	}
-};
+
+
+	private: System::Void button3_Click(System::Object^  sender, System::EventArgs^  e) {
+
+	}
+	};
 }
+	
