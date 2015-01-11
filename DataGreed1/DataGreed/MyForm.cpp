@@ -61,6 +61,7 @@ std::vector<std::string> csv_read_row(std::istream &in, char delimiter)
 			ss << c;
 		}
 	}
+	return row;
 }
 
 std::string Trimmer(std::string s)
@@ -82,17 +83,16 @@ std::string dtos(double dbl){
 	return buf;
 }
 
-/*
-bool To_string(String^ source, std::string &target)
+bool TryParse(std::string str)
 {
-	int len = ((source->Length + 1) * 2);
-	char *ch = new char[len];
-	bool result;
-	
-	pin_ptr<const wchar_t> wch = PtrToStringChars(source);
-	result = wcstombs(ch, wch, len) != -1;
-	
-	target = ch;
-	delete ch;
-	return result;
-}*/
+	try {
+		std::stod(str);
+	}
+	catch (const std::invalid_argument&) {
+		return false;
+	}
+	catch (const std::out_of_range&) {
+		return false;
+	}
+	return true;
+}
