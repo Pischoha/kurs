@@ -9,6 +9,7 @@ int main(){
 
 std::vector<WorkerInfo> ReadFile(std::string fileName)
 {
+	std::vector<WorkerInfo> workers;
 	std::ifstream in(fileName);
 	while (in.good())
 	{
@@ -80,3 +81,18 @@ std::string dtos(double dbl){
 	sprintf_s(buf, "%lf", dbl);
 	return buf;
 }
+
+/*
+bool To_string(String^ source, std::string &target)
+{
+	int len = ((source->Length + 1) * 2);
+	char *ch = new char[len];
+	bool result;
+	
+	pin_ptr<const wchar_t> wch = PtrToStringChars(source);
+	result = wcstombs(ch, wch, len) != -1;
+	
+	target = ch;
+	delete ch;
+	return result;
+}*/
