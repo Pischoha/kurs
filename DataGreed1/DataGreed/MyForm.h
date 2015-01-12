@@ -332,16 +332,25 @@ namespace DataGreed {
 					 System::Windows::Forms::MessageBox::Show("Salary have to be a number");
 					 return;
 				 }
+				 
 
 				 String^ lastName = gcnew String(textBox1->Text);
-				 double salary = std::stod(salaryStr);
-				 double PP = salary * 0.2;
-				 double PF = salary * 0.01;
-				 double FZ = salary *0.005;
-				 double U = PP + PF + FZ;
-				 double ZP = salary - U;
-				 dataGridView1->Rows->Add(lastName, salary, PP, PF, FZ, U, ZP);
-
+				 double salary = stod(salaryStr);
+				 //check negative numbers
+				 if (salary < 0)
+				 {
+					 System::Windows::Forms::MessageBox::Show("Salary have to be positive");
+					 return;
+				 }
+				 else
+				 {
+					 double PP = salary * 0.2;
+					 double PF = salary * 0.01;
+					 double FZ = salary *0.005;
+					 double U = PP + PF + FZ;
+					 double ZP = salary - U;
+					 dataGridView1->Rows->Add(lastName, salary, PP, PF, FZ, U, ZP);
+				 }
 				 textBox1->Clear();
 				 textBox2->Clear();
 	}
@@ -394,19 +403,29 @@ namespace DataGreed {
 					 dataGridView1->Rows[e->RowIndex]->ErrorText = "Salary have to be a number";
 					 e->Cancel = true;
 				 }
-				 double salary = std::stod(currentValue);
-				 double PP = salary * 0.2;
-				 double PF = salary * 0.01;
-				 double FZ = salary *0.005;
-				 double U = PP + PF + FZ;
-				 double ZP = salary - U;
+				 
 
-				 dataGridView1->Rows[e->RowIndex]->Cells[2]->Value = PP;
-				 dataGridView1->Rows[e->RowIndex]->Cells[3]->Value = PF;
-				 dataGridView1->Rows[e->RowIndex]->Cells[4]->Value = FZ;
-				 dataGridView1->Rows[e->RowIndex]->Cells[5]->Value = U;
-				 dataGridView1->Rows[e->RowIndex]->Cells[6]->Value = ZP;
-	}
+				 double salary = stod(currentValue);
+				 //check negative numbers
+				 if (salary < 0)
+				 {
+					 e->Cancel = true;
+				 }
+				 else
+				 {
+					 double PP = salary * 0.2;
+					 double PF = salary * 0.01;
+					 double FZ = salary *0.005;
+					 double U = PP + PF + FZ;
+					 double ZP = salary - U;
+
+					 dataGridView1->Rows[e->RowIndex]->Cells[2]->Value = PP;
+					 dataGridView1->Rows[e->RowIndex]->Cells[3]->Value = PF;
+					 dataGridView1->Rows[e->RowIndex]->Cells[4]->Value = FZ;
+					 dataGridView1->Rows[e->RowIndex]->Cells[5]->Value = U;
+					 dataGridView1->Rows[e->RowIndex]->Cells[6]->Value = ZP;
+				 }
+				 }
 	
 	private: System::Void MyForm_Load(System::Object^  sender, System::EventArgs^  e) {
 				 dataGridView1->Columns->Add("LastName", "Last Name");
