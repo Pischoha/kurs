@@ -25,6 +25,7 @@ std::vector<WorkerInfo> ReadFile(std::string fileName)
 			else
 			{
 				strSalary = Trimmer(row[i]);
+				if (!TryParse(strSalary)) continue;
 				salary = stod(strSalary);
 				salary = floor((salary * 10) + 0.5);
 				salary /= 10;
@@ -85,14 +86,7 @@ std::string dtos(double dbl){
 
 bool TryParse(std::string str)
 {
-	try {
-		std::stod(str);
-	}
-	catch (const std::invalid_argument&) {
-		return false;
-	}
-	catch (const std::out_of_range&) {
-		return false;
-	}
-	return true;
+	char* endptr;
+	strtod(str.c_str(), &endptr);
+	return !*endptr;
 }

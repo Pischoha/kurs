@@ -86,6 +86,7 @@ namespace DataGreed {
 	private: System::Windows::Forms::SaveFileDialog^  saveFileDialog1;
 
 
+
 	protected:
 
 	private:
@@ -125,6 +126,7 @@ namespace DataGreed {
 			this->dataGridView1->Name = L"dataGridView1";
 			this->dataGridView1->Size = System::Drawing::Size(600, 368);
 			this->dataGridView1->TabIndex = 0;
+			this->dataGridView1->CellEndEdit += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &MyForm::dataGridView1_CellEndEdit);
 			this->dataGridView1->CellValidating += gcnew System::Windows::Forms::DataGridViewCellValidatingEventHandler(this, &MyForm::dataGridView1_CellValidating);
 			// 
 			// button1
@@ -278,15 +280,9 @@ namespace DataGreed {
 			}
 		}
 	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) {
-				 std::vector<WorkerInfo> workers;
-				 std::string fileName = msclr::interop::marshal_as<std::string>(openFileDialog1->FileName);
-				 workers = ReadFile(fileName);
 				 if (saveFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
 				 {
 					 std::string saveName = msclr::interop::marshal_as<std::string>(saveFileDialog1->FileName);
-					 workers = ReadFile(fileName);
-					 if (workers.size() == 0)
-						 return;
 				 }
 				 else
 				 {
@@ -295,10 +291,11 @@ namespace DataGreed {
 				 std::string saveName = msclr::interop::marshal_as<std::string>(saveFileDialog1->FileName);
 				 std::ofstream on(saveName);
 				 std::string str;
-				 for (int i = 0; i < workers.size(); i++)
+				 for (int i = 0; i < dataGridView1->RowCount; ++i)
 				 {
-					 str += workers[i].LastName + "; " + dtos(workers[i].Salary) + "\\ ";
-
+					 std::string lastName = msclr::interop::marshal_as<std::string>(dataGridView1->Rows[i]->Cells[0]->Value->ToString());
+					 std::string salary = msclr::interop::marshal_as<std::string>(dataGridView1->Rows[i]->Cells[1]->Value->ToString());
+					 str += lastName + "; " + salary + "\\";
 				 }
 				 on << str << std::endl;
 				 on.close();
@@ -341,52 +338,43 @@ namespace DataGreed {
 				 {
 					 System::Windows::Forms::MessageBox::Show("Salary have to be positive");
 					 return;
-				 }
-				 else
-				 {
+				 }				 			 
 					 double PP = salary * 0.2;
 					 double PF = salary * 0.01;
 					 double FZ = salary *0.005;
 					 double U = PP + PF + FZ;
 					 double ZP = salary - U;
 					 dataGridView1->Rows->Add(lastName, salary, PP, PF, FZ, U, ZP);
-				 }
+				 
 				 textBox1->Clear();
 				 textBox2->Clear();
 	}
 
 	private: System::Void button5_Click(System::Object^  sender, System::EventArgs^  e) {
-				 std::vector<WorkerInfo> workers;
-				 std::string fileName = msclr::interop::marshal_as<std::string>(openFileDialog1->FileName);
-				 workers = ReadFile(fileName);
 				 if (saveFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
 				 {
-					 std::string saveAllName = msclr::interop::marshal_as<std::string>(saveFileDialog1->FileName);
-					 workers = ReadFile(fileName);
-					 if (workers.size() == 0)
-						 return;
+					 std::string saveName = msclr::interop::marshal_as<std::string>(saveFileDialog1->FileName);
 				 }
 				 else
 				 {
 					 return;
 				 }
-				 std::string saveAllName = msclr::interop::marshal_as<std::string>(saveFileDialog1->FileName);
-				 std::ofstream on(saveAllName);
+				 std::string saveName = msclr::interop::marshal_as<std::string>(saveFileDialog1->FileName);
+				 std::ofstream on(saveName);
 				 std::string str;
-				 for (int i = 0; i < workers.size(); i++)
+				 for (int i = 0; i < dataGridView1->RowCount; ++i)
 				 {
-					 double salary = workers[i].Salary;
-					 double PP = salary * 0.2;
-					 double PF = salary * 0.01;
-					 double FZ = salary *0.005;
-					 double U = PP + PF + FZ;
-					 double ZP = salary - U;
-					 str += workers[i].LastName + " | " + dtos(workers[i].Salary) + " | " + dtos(PP) + " | " + dtos(PF) + " | " + dtos(FZ) + " | " + dtos(U) + " | " + dtos(ZP);
-
+					 std::string lastName = msclr::interop::marshal_as<std::string>(dataGridView1->Rows[i]->Cells[0]->Value->ToString());
+					 std::string salary = msclr::interop::marshal_as<std::string>(dataGridView1->Rows[i]->Cells[1]->Value->ToString());
+					 std::string PP = msclr::interop::marshal_as<std::string>(dataGridView1->Rows[i]->Cells[2]->Value->ToString());
+					 std::string PF = msclr::interop::marshal_as<std::string>(dataGridView1->Rows[i]->Cells[3]->Value->ToString());
+					 std::string FZ = msclr::interop::marshal_as<std::string>(dataGridView1->Rows[i]->Cells[4]->Value->ToString());
+					 std::string U = msclr::interop::marshal_as<std::string>(dataGridView1->Rows[i]->Cells[5]->Value->ToString());
+					 std::string ZP = msclr::interop::marshal_as<std::string>(dataGridView1->Rows[i]->Cells[6]->Value->ToString());
+					 str += lastName + "; " + salary + "; " + PP + "; " + PF + "; " + FZ + "; " + U + "; " + ZP + "\\";
 				 }
 				 on << str << std::endl;
 				 on.close();
-
 	}
 
 	private: System::Void dataGridView1_CellValidating(System::Object^  sender, System::Windows::Forms::DataGridViewCellValidatingEventArgs^  e) {
@@ -397,35 +385,39 @@ namespace DataGreed {
 				 {
 					 dataGridView1->Rows[e->RowIndex]->ErrorText = "Salary haven't be empty";
 					 e->Cancel = true;
+					 return;
 				 }
 				 if (!TryParse(currentValue))
 				 {
 					 dataGridView1->Rows[e->RowIndex]->ErrorText = "Salary have to be a number";
 					 e->Cancel = true;
+					 return;
 				 }
-				 
+
 
 				 double salary = stod(currentValue);
 				 //check negative numbers
 				 if (salary < 0)
 				 {
+					 dataGridView1->Rows[e->RowIndex]->ErrorText = "Salary have to be positive";
 					 e->Cancel = true;
+					 return;
 				 }
-				 else
-				 {
-					 double PP = salary * 0.2;
-					 double PF = salary * 0.01;
-					 double FZ = salary *0.005;
-					 double U = PP + PF + FZ;
-					 double ZP = salary - U;
 
-					 dataGridView1->Rows[e->RowIndex]->Cells[2]->Value = PP;
-					 dataGridView1->Rows[e->RowIndex]->Cells[3]->Value = PF;
-					 dataGridView1->Rows[e->RowIndex]->Cells[4]->Value = FZ;
-					 dataGridView1->Rows[e->RowIndex]->Cells[5]->Value = U;
-					 dataGridView1->Rows[e->RowIndex]->Cells[6]->Value = ZP;
-				 }
-				 }
+				 
+
+				 double PP = salary * 0.2;
+				 double PF = salary * 0.01;
+				 double FZ = salary *0.005;
+				 double U = PP + PF + FZ;
+				 double ZP = salary - U;
+
+				 dataGridView1->Rows[e->RowIndex]->Cells[2]->Value = PP;
+				 dataGridView1->Rows[e->RowIndex]->Cells[3]->Value = PF;
+				 dataGridView1->Rows[e->RowIndex]->Cells[4]->Value = FZ;
+				 dataGridView1->Rows[e->RowIndex]->Cells[5]->Value = U;
+				 dataGridView1->Rows[e->RowIndex]->Cells[6]->Value = ZP;
+	}
 	
 	private: System::Void MyForm_Load(System::Object^  sender, System::EventArgs^  e) {
 				 dataGridView1->Columns->Add("LastName", "Last Name");
@@ -448,6 +440,11 @@ namespace DataGreed {
 				 dataGridView1->Columns[4]->ReadOnly = true;
 				 dataGridView1->Columns[5]->ReadOnly = true;
 
+	}
+
+	private: System::Void dataGridView1_CellEndEdit(System::Object^  sender, System::Windows::Forms::DataGridViewCellEventArgs^  e) {
+				 // Clear the row error in case the user presses ESC.   
+				 dataGridView1->Rows[e->RowIndex]->ErrorText = String::Empty;
 	}
 };
 }
