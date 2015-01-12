@@ -26,7 +26,7 @@ std::vector<std::string> csv_read_row(std::istream &in, char delimiter);
 std::string Trimmer(std::string s);
 std::string dtos(double dbl);
 std::vector<WorkerInfo> ReadFile(std::string fileName);
-bool TryParse(std::string str);
+bool Parse(std::string str, double *value);
 
 
 
@@ -217,6 +217,11 @@ namespace DataGreed {
 			this->button5->UseVisualStyleBackColor = true;
 			this->button5->Click += gcnew System::EventHandler(this, &MyForm::button5_Click);
 			// 
+			// saveFileDialog1
+			// 
+			this->saveFileDialog1->Filter = L" Text files (*.txt)|*.txt|CSV files (*.csv*)|*.csv*";
+			this->saveFileDialog1->FilterIndex = 2;
+			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
@@ -324,28 +329,28 @@ namespace DataGreed {
 					 return;
 				 }
 				 std::string salaryStr = msclr::interop::marshal_as<std::string>(textBox2->Text);
-				 if (!TryParse(salaryStr))
+				 double salary;
+				 if (!Parse(salaryStr, &salary))
 				 {
 					 System::Windows::Forms::MessageBox::Show("Salary have to be a number");
 					 return;
 				 }
-				 
-
-				 String^ lastName = gcnew String(textBox1->Text);
-				 double salary = stod(salaryStr);
 				 //check negative numbers
 				 if (salary < 0)
 				 {
 					 System::Windows::Forms::MessageBox::Show("Salary have to be positive");
 					 return;
-				 }				 			 
-					 double PP = salary * 0.2;
-					 double PF = salary * 0.01;
-					 double FZ = salary *0.005;
-					 double U = PP + PF + FZ;
-					 double ZP = salary - U;
-					 dataGridView1->Rows->Add(lastName, salary, PP, PF, FZ, U, ZP);
-				 
+				 }
+
+
+				 String^ lastName = gcnew String(textBox1->Text);
+				 double PP = salary * 0.2;
+				 double PF = salary * 0.01;
+				 double FZ = salary *0.005;
+				 double U = PP + PF + FZ;
+				 double ZP = salary - U;
+				 dataGridView1->Rows->Add(lastName, salary, PP, PF, FZ, U, ZP);
+
 				 textBox1->Clear();
 				 textBox2->Clear();
 	}
@@ -387,15 +392,15 @@ namespace DataGreed {
 					 e->Cancel = true;
 					 return;
 				 }
-				 if (!TryParse(currentValue))
+
+				 double salary;
+				 if (!Parse(currentValue, &salary))
 				 {
 					 dataGridView1->Rows[e->RowIndex]->ErrorText = "Salary have to be a number";
 					 e->Cancel = true;
 					 return;
 				 }
 
-
-				 double salary = stod(currentValue);
 				 //check negative numbers
 				 if (salary < 0)
 				 {
@@ -434,6 +439,13 @@ namespace DataGreed {
 				 dataGridView1->Columns[3]->AutoSizeMode = DataGridViewAutoSizeColumnMode::Fill;
 				 dataGridView1->Columns[4]->AutoSizeMode = DataGridViewAutoSizeColumnMode::Fill;
 				 dataGridView1->Columns[5]->AutoSizeMode = DataGridViewAutoSizeColumnMode::Fill;
+				
+				 dataGridView1->Columns[0]->SortMode = DataGridViewColumnSortMode::NotSortable;
+				 dataGridView1->Columns[1]->SortMode = DataGridViewColumnSortMode::NotSortable;
+				 dataGridView1->Columns[2]->SortMode = DataGridViewColumnSortMode::NotSortable;
+				 dataGridView1->Columns[3]->SortMode = DataGridViewColumnSortMode::NotSortable;
+				 dataGridView1->Columns[4]->SortMode = DataGridViewColumnSortMode::NotSortable;
+				 dataGridView1->Columns[5]->SortMode = DataGridViewColumnSortMode::NotSortable;
 
 				 dataGridView1->Columns[2]->ReadOnly = true;
 				 dataGridView1->Columns[3]->ReadOnly = true;
