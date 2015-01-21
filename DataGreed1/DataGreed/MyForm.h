@@ -27,6 +27,7 @@ std::string Trimmer(std::string s);
 std::string dtos(double dbl);
 std::vector<WorkerInfo> ReadFile(std::string fileName);
 bool Parse(std::string str, double *value);
+double S1, S2, S3, S4;
 
 
 
@@ -271,6 +272,8 @@ namespace DataGreed {
 			}
 
 			dataGridView1->Rows->Clear();
+			double S1, S2, S3, S4;
+			
 			for (int i = 0; i < workers.size(); i++)
 			{
 				String^ lastName = gcnew String(workers[i].LastName.c_str());
@@ -281,8 +284,16 @@ namespace DataGreed {
 				double U = PP + PF + FZ;
 				double ZP = salary - U;
 				dataGridView1->Rows->Add(lastName, salary, PP, PF, FZ, U, ZP);
-
+			    S1 += PP;
+				S2 += PF;
+				S3 += FZ;
+				S4 += ZP;
 			}
+			dataGridView1->Rows->Add("Total", " ", S1, S2, S3, " ", S4);
+			double A1 = S1;
+			double A2 = S2;
+			double A3 = S3;
+			double A4 = S4;
 		}
 	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) {
 				 if (saveFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
@@ -341,18 +352,25 @@ namespace DataGreed {
 					 System::Windows::Forms::MessageBox::Show("Salary have to be positive");
 					 return;
 				 }
-
-
+				  if (dataGridView1->RowCount != 0)
+				 {
+					 dataGridView1->Rows->RemoveAt(dataGridView1->RowCount-1);
+				 }
 				 String^ lastName = gcnew String(textBox1->Text);
 				 double PP = salary * 0.2;
 				 double PF = salary * 0.01;
 				 double FZ = salary *0.005;
 				 double U = PP + PF + FZ;
-				 double ZP = salary - U;
+				 double ZP = salary - U; 
 				 dataGridView1->Rows->Add(lastName, salary, PP, PF, FZ, U, ZP);
-
+					 S1 += PP;
+					 S2 += PF;
+					 S3 += FZ;
+					 S4 += ZP;		
+				 dataGridView1->Rows->Add("Total", "", S1, S2, S3, "", S4);
 				 textBox1->Clear();
 				 textBox2->Clear();
+				
 	}
 
 	private: System::Void button5_Click(System::Object^  sender, System::EventArgs^  e) {
@@ -409,19 +427,18 @@ namespace DataGreed {
 					 return;
 				 }
 
-				 
-
 				 double PP = salary * 0.2;
 				 double PF = salary * 0.01;
 				 double FZ = salary *0.005;
 				 double U = PP + PF + FZ;
 				 double ZP = salary - U;
-
+				
 				 dataGridView1->Rows[e->RowIndex]->Cells[2]->Value = PP;
 				 dataGridView1->Rows[e->RowIndex]->Cells[3]->Value = PF;
 				 dataGridView1->Rows[e->RowIndex]->Cells[4]->Value = FZ;
 				 dataGridView1->Rows[e->RowIndex]->Cells[5]->Value = U;
 				 dataGridView1->Rows[e->RowIndex]->Cells[6]->Value = ZP;
+				
 	}
 	
 	private: System::Void MyForm_Load(System::Object^  sender, System::EventArgs^  e) {
